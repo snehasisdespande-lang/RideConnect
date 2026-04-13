@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RideConnect — Marcus Johnson</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .month-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 80px;
+    }
+    .month-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      background: var(--border-light);
+      cursor: pointer;
+      transition: background 150ms ease;
+      min-height: 3px;
+      position: relative;
+    }
+    .month-bar:hover { background: var(--brand-orange); }
+    .month-bar.has-activity { background: rgba(252,76,2,0.4); }
+    .month-bar.has-activity:hover { background: var(--brand-orange); }
+    .month-bar.today { background: var(--brand-orange); }
+    .activity-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      transition: background var(--ease-default);
+      cursor: pointer;
+    }
+    .activity-row:hover { background: var(--bg-page); }
+    .activity-row + .activity-row { border-top: 1px solid var(--border-light); }
+    .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .badge-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 8px;
+      border-radius: 10px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-light);
+      cursor: pointer;
+      transition: border-color var(--ease-default), box-shadow var(--ease-default);
+    }
+    .badge-item:hover { border-color: var(--brand-orange); box-shadow: var(--shadow-sm); }
+    .badge-item.locked { opacity: 0.4; filter: grayscale(1); }
+    .badge-emoji { font-size: 28px; }
+    .badge-name { font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: center; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────── -->
+<nav class="nav">
+  <a href="index.html" class="nav__logo">
+    <div class="nav__logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/>
+        <circle cx="17" cy="17" r="5"/><circle cx="17" cy="17" r="1.5"/>
+      </svg>
+    </div>
+    Ride<span class="accent">Connect</span>
+  </a>
+  <div class="nav__links">
+    <a href="index.html" class="nav__link">Feed</a>
+    <a href="leaderboard.html" class="nav__link">Leaderboard</a>
+    <a href="activity.html" class="nav__link">My Trips</a>
+    <a href="#" class="nav__link">Explore</a>
+  </div>
+  <div class="nav__right">
+    <button class="nav__icon-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
+    <button class="nav__icon-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="nav__badge">3</span>
+    </button>
+    <a href="profile.html" class="nav__avatar">
+      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" alt="Me"/>
+    </a>
+  </div>
+</nav>
+
+<!-- ── Profile Header ──────────────────────────── -->
+<div style="max-width:1200px;margin:0 auto;padding:24px 16px;">
+
+  <div class="profile-header">
+    <div class="profile-header__cover">
+      <div class="profile-header__cover-pattern"></div>
+      <!-- City silhouette -->
+      <svg viewBox="0 0 1200 180" style="position:absolute;bottom:0;left:0;width:100%;opacity:0.2;" preserveAspectRatio="none">
+        <path d="M0,180 L0,120 L50,120 L50,80 L80,80 L80,60 L110,60 L110,80 L140,80 L140,100 L180,100 L180,70 L200,70 L200,50 L220,50 L220,70 L250,70 L250,100 L290,100 L290,60 L310,60 L310,40 L330,40 L330,60 L360,60 L360,100 L400,100 L400,80 L420,80 L420,100 L460,100 L460,70 L490,70 L490,50 L510,50 L510,70 L540,70 L540,100 L580,100 L580,80 L600,80 L600,100 L640,100 L640,60 L660,60 L660,30 L680,30 L680,60 L710,60 L710,100 L750,100 L750,80 L780,80 L780,60 L800,60 L800,80 L840,80 L840,100 L880,100 L880,70 L900,70 L900,100 L940,100 L940,80 L960,80 L960,100 L1000,100 L1000,120 L1050,120 L1050,100 L1080,100 L1080,120 L1120,120 L1120,100 L1150,100 L1150,120 L1200,120 L1200,180 Z" fill="white"/>
+      </svg>
+      <div class="profile-header__avatar-wrap">
+        <div class="profile-header__avatar">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" alt="Marcus"/>
+        </div>
+      </div>
+    </div>
+    <div class="profile-header__body">
+      <div class="profile-header__info">
+        <div class="profile-header__name">Marcus Johnson</div>
+        <div>
+          <span class="profile-header__badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Diamond Driver
+          </span>
+        </div>
+        <div class="profile-header__location">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          San Francisco, CA &nbsp;·&nbsp; Member since Jan 2022
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn--ghost btn--sm">Message</button>
+        <button class="btn btn--primary btn--sm">Following ✓</button>
+      </div>
+    </div>
+
+    <!-- Profile Stats Bar -->
+    <div style="padding:0 32px 20px;display:flex;gap:40px;border-top:1px solid var(--border-light);padding-top:16px;">
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;">1,847</div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Followers</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;">312</div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Following</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--stat-miles);">10,247</div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Lifetime Miles</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--stat-earnings);">$34,820</div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Lifetime Earned</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--stat-trips);">2,341</div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Total Trips</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;">4.95⭐</div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Avg Rating</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Two Column Layout ──────────────────────── -->
+  <div class="page-layout page-layout--two-col" style="padding:0;margin:0;">
+
+    <!-- LEFT: Stats & Activity -->
+    <div>
+
+      <!-- Period Tabs + Stats -->
+      <div class="card card--elevated mb-4">
+        <div style="padding:16px 16px 12px;border-bottom:1px solid var(--border-light);">
+          <div class="tabs">
+            <button class="tab-btn" onclick="switchPeriod(this,'week')">Week</button>
+            <button class="tab-btn active" onclick="switchPeriod(this,'month')">Month</button>
+            <button class="tab-btn" onclick="switchPeriod(this,'year')">Year</button>
+            <button class="tab-btn" onclick="switchPeriod(this,'all')">All-Time</button>
+          </div>
+        </div>
+        <div style="padding:16px;">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px;">
+            <div style="background:var(--bg-page);border-radius:10px;padding:16px;border-left:3px solid var(--stat-miles);">
+              <div style="font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--stat-miles);">847<span style="font-size:16px;font-weight:600;">mi</span></div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Distance</div>
+              <div style="font-size:12px;color:var(--brand-accent);margin-top:6px;font-weight:600;">↑ 12% vs last month</div>
+            </div>
+            <div style="background:var(--bg-page);border-radius:10px;padding:16px;border-left:3px solid var(--stat-earnings);">
+              <div style="font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--stat-earnings);">$2,840</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Earned</div>
+              <div style="font-size:12px;color:var(--brand-accent);margin-top:6px;font-weight:600;">↑ 8% vs last month</div>
+            </div>
+            <div style="background:var(--bg-page);border-radius:10px;padding:16px;border-left:3px solid var(--stat-hours);">
+              <div style="font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--stat-hours);">112<span style="font-size:16px;font-weight:600;">h</span></div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Active Hours</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:6px;font-weight:600;">— same as last month</div>
+            </div>
+            <div style="background:var(--bg-page);border-radius:10px;padding:16px;border-left:3px solid var(--stat-trips);">
+              <div style="font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--stat-trips);">204</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Trips Completed</div>
+              <div style="font-size:12px;color:var(--brand-accent);margin-top:6px;font-weight:600;">↑ 5% vs last month</div>
+            </div>
+          </div>
+
+          <!-- Monthly Activity Heatmap -->
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Daily Activity — April 2026</div>
+          <div id="monthChart" class="month-chart" style="height:70px;gap:2px;"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;">
+            <span class="text-xs text-muted">Apr 1</span>
+            <span class="text-xs text-muted">Apr 15</span>
+            <span class="text-xs text-muted">Apr 30</span>
+          </div>
+
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-light);">
+            <div style="display:flex;gap:24px;">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-muted);">Best Day</div>
+                <div style="font-size:15px;font-weight:800;margin-top:2px;">Apr 5 — 68 miles / $248</div>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-muted);">Avg / Day</div>
+                <div style="font-size:15px;font-weight:800;margin-top:2px;">28 miles / $94</div>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-muted);">$/hr Rate</div>
+                <div style="font-size:15px;font-weight:800;margin-top:2px;color:var(--stat-earnings);">$25.36</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activities -->
+      <div class="card card--elevated">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-light);">
+          <div style="font-size:14px;font-weight:700;">Recent Trips</div>
+          <a href="activity.html" class="text-sm" style="color:var(--brand-orange);font-weight:600;">View all →</a>
+        </div>
+
+        <div class="activity-row" onclick="location.href='activity.html'">
+          <div style="width:44px;height:44px;border-radius:8px;background:rgba(252,76,2,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">🚗</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Morning Hustle — Downtown to SFO</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:1px;">Today · 2:14 PM &nbsp;·&nbsp; <span class="tag tag--green" style="padding:1px 5px;font-size:10px;">Morning Rush</span></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:14px;font-weight:800;color:var(--stat-earnings);">$67.40</div>
+            <div style="font-size:12px;color:var(--text-muted);">24.3 mi</div>
+          </div>
+        </div>
+        <div class="activity-row" onclick="location.href='activity.html'">
+          <div style="width:44px;height:44px;border-radius:8px;background:rgba(252,76,2,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">🌅</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Early Morning Airport Runs</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:1px;">Yesterday · 5:00 AM &nbsp;·&nbsp; <span class="tag tag--orange" style="padding:1px 5px;font-size:10px;">Early Bird</span></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:14px;font-weight:800;color:var(--stat-earnings);">$112.80</div>
+            <div style="font-size:12px;color:var(--text-muted);">48.2 mi</div>
+          </div>
+        </div>
+        <div class="activity-row" onclick="location.href='activity.html'">
+          <div style="width:44px;height:44px;border-radius:8px;background:rgba(123,47,190,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">🌙</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Late Night Surge — Weekend Grind</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:1px;">Apr 11 · 10:00 PM &nbsp;·&nbsp; <span class="tag tag--purple" style="padding:1px 5px;font-size:10px;">Night Shift</span></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:14px;font-weight:800;color:var(--stat-earnings);">$193.80</div>
+            <div style="font-size:12px;color:var(--text-muted);">41.2 mi &nbsp;·&nbsp; 2.4x surge</div>
+          </div>
+        </div>
+        <div class="activity-row" onclick="location.href='activity.html'">
+          <div style="width:44px;height:44px;border-radius:8px;background:rgba(26,115,232,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">🏙️</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Steady Afternoon — Mixed Zones</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:1px;">Apr 10 · 1:00 PM</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:14px;font-weight:800;color:var(--stat-earnings);">$78.20</div>
+            <div style="font-size:12px;color:var(--text-muted);">32.7 mi</div>
+          </div>
+        </div>
+        <div class="activity-row" onclick="location.href='activity.html'">
+          <div style="width:44px;height:44px;border-radius:8px;background:rgba(252,76,2,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">✈️</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">SFO Airport Loop — 5 Trips</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:1px;">Apr 9 · 7:00 AM</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:14px;font-weight:800;color:var(--stat-earnings);">$156.40</div>
+            <div style="font-size:12px;color:var(--text-muted);">62.0 mi</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Sidebar widgets -->
+    <div>
+
+      <!-- Badges -->
+      <div class="card card--elevated mb-4">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:14px;font-weight:700;">Achievements</div>
+          <span class="tag tag--orange">12 / 24 earned</span>
+        </div>
+        <div style="padding:14px;">
+          <div class="badge-grid">
+            <div class="badge-item" title="10,000 Miles!">
+              <div class="badge-emoji">🏆</div>
+              <div class="badge-name">10K Miles</div>
+            </div>
+            <div class="badge-item" title="Diamond Driver">
+              <div class="badge-emoji">💎</div>
+              <div class="badge-name">Diamond</div>
+            </div>
+            <div class="badge-item" title="Night Owl — 100 night trips">
+              <div class="badge-emoji">🦉</div>
+              <div class="badge-name">Night Owl</div>
+            </div>
+            <div class="badge-item" title="Airport Pro — 200 airport trips">
+              <div class="badge-emoji">✈️</div>
+              <div class="badge-name">Airport Pro</div>
+            </div>
+            <div class="badge-item" title="Early Bird — 50 pre-6AM trips">
+              <div class="badge-emoji">🌅</div>
+              <div class="badge-name">Early Bird</div>
+            </div>
+            <div class="badge-item" title="Surge Master — 50 surge trips">
+              <div class="badge-emoji">⚡</div>
+              <div class="badge-name">Surge Master</div>
+            </div>
+            <div class="badge-item locked" title="50K miles — locked">
+              <div class="badge-emoji">🚀</div>
+              <div class="badge-name">50K Miles</div>
+            </div>
+            <div class="badge-item locked" title="$100K earned — locked">
+              <div class="badge-emoji">💰</div>
+              <div class="badge-name">$100K Club</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Heatmap / Area coverage -->
+      <div class="card card--elevated mb-4">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border-light);">
+          <div style="font-size:14px;font-weight:700;">Coverage Map</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">All-time trip routes</div>
+        </div>
+        <div style="background:#e5ebf0;height:180px;position:relative;overflow:hidden;">
+          <svg viewBox="0 0 280 180" style="width:100%;height:100%;">
+            <!-- Map grid -->
+            <g stroke="#d0d8e0" stroke-width="0.5" fill="none">
+              <line x1="0" y1="45" x2="280" y2="45"/><line x1="0" y1="90" x2="280" y2="90"/><line x1="0" y1="135" x2="280" y2="135"/>
+              <line x1="70" y1="0" x2="70" y2="180"/><line x1="140" y1="0" x2="140" y2="180"/><line x1="210" y1="0" x2="210" y2="180"/>
+            </g>
+            <!-- Route density heatmap -->
+            <g stroke="#FC4C02" fill="none" opacity="0.15" stroke-linecap="round">
+              <path stroke-width="8" d="M 20,140 C 60,120 90,80 130,60 S 200,40 260,30"/>
+              <path stroke-width="6" d="M 20,130 C 50,110 80,90 120,70 S 190,50 260,40"/>
+              <path stroke-width="5" d="M 30,150 C 70,130 100,100 150,80 S 220,60 270,50"/>
+              <path stroke-width="4" d="M 20,160 L 60,140 L 100,120 L 150,90 L 200,70 L 260,55"/>
+              <path stroke-width="3" d="M 140,180 L 140,120 L 180,80 L 220,60 L 260,30"/>
+              <path stroke-width="3" d="M 70,180 L 70,130 L 100,90 L 140,60 L 200,40"/>
+            </g>
+            <g stroke="#FC4C02" fill="none" opacity="0.5" stroke-linecap="round">
+              <path stroke-width="2" d="M 20,140 C 60,120 90,80 130,60 S 200,40 260,30"/>
+              <path stroke-width="2" d="M 30,150 C 70,130 100,100 150,80 S 220,60 270,50"/>
+            </g>
+            <!-- SFO label -->
+            <circle cx="240" cy="32" r="4" fill="white" stroke="#FC4C02" stroke-width="1.5"/>
+            <text x="248" y="36" font-family="Inter,sans-serif" font-size="8" fill="#595959" font-weight="600">SFO</text>
+            <text x="5" y="150" font-family="Inter,sans-serif" font-size="8" fill="#595959" font-weight="600">Downtown</text>
+          </svg>
+        </div>
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;">
+          <div style="font-size:12px;color:var(--text-muted);">19 neighborhoods covered</div>
+          <div style="font-size:12px;font-weight:600;color:var(--brand-orange);">Explore map →</div>
+        </div>
+      </div>
+
+      <!-- Rating breakdown -->
+      <div class="card card--elevated">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border-light);">
+          <div style="font-size:14px;font-weight:700;">Rating Breakdown</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Based on 2,341 ratings</div>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+            <div style="font-size:48px;font-weight:900;letter-spacing:-2px;color:var(--text-primary);">4.95</div>
+            <div>
+              <div style="font-size:20px;">⭐⭐⭐⭐⭐</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Top 2% in SF</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:12px;width:10px;text-align:right;">5</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <div style="flex:1;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">
+                <div style="height:100%;width:88%;background:#F59E0B;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;color:var(--text-muted);width:36px;text-align:right;">88%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:12px;width:10px;text-align:right;">4</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <div style="flex:1;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">
+                <div style="height:100%;width:9%;background:#F59E0B;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;color:var(--text-muted);width:36px;text-align:right;">9%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:12px;width:10px;text-align:right;">3</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#D1D5DB"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <div style="flex:1;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">
+                <div style="height:100%;width:2%;background:#D1D5DB;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;color:var(--text-muted);width:36px;text-align:right;">2%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:12px;width:10px;text-align:right;">1-2</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#D1D5DB"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <div style="flex:1;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">
+                <div style="height:100%;width:1%;background:#EF4444;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;color:var(--text-muted);width:36px;text-align:right;">1%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Generate month activity chart
+const chart = document.getElementById('monthChart');
+const days = 30;
+const data = [28,0,42,35,68,55,40,0,38,49,56,43,30,0,52,48,60,35,42,0,55,38,47,62,41,0,35,28,47,66];
+const max = Math.max(...data);
+data.forEach((val, i) => {
+  const bar = document.createElement('div');
+  bar.className = 'month-bar' + (val > 0 ? ' has-activity' : '') + (i === 12 ? ' today' : '');
+  bar.style.height = val > 0 ? Math.max(8, (val / max) * 100) + '%' : '3px';
+  bar.title = val > 0 ? `Apr ${i+1}: ${val} miles` : `Apr ${i+1}: No activity`;
+  chart.appendChild(bar);
+});
+
+function switchPeriod(btn, period) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideConnect — Join the Community</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --brand-primary: #000000;
+      --brand-accent:  #06C270;
+      --brand-orange:  #FC4C02;
+      --bg-page:       #F5F5F0;
+      --bg-card:       #FFFFFF;
+      --text-primary:  #1A1A1A;
+      --text-secondary:#595959;
+      --text-muted:    #909090;
+      --border-light:  #E8E8E2;
+      --shadow-md:     0 4px 24px rgba(0,0,0,0.10);
+      --shadow-lg:     0 12px 48px rgba(0,0,0,0.14);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-page);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Left panel ── */
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(160deg, #0A0A0F 0%, #0f1a2e 50%, #0a1628 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    /* Diagonal grid lines */
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.05;
+      background-image:
+        repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(255,255,255,1) 30px, rgba(255,255,255,1) 31px);
+    }
+
+    /* Glow orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .orb-1 { width: 320px; height: 320px; background: rgba(252,76,2,0.18); top: -60px; right: -60px; }
+    .orb-2 { width: 240px; height: 240px; background: rgba(6,194,112,0.12); bottom: 80px; left: -40px; }
+
+    .left-logo {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 900;
+      color: white;
+      letter-spacing: -0.5px;
+      z-index: 1;
+    }
+    .left-logo-icon {
+      width: 38px; height: 38px;
+      background: var(--brand-orange);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .left-logo .accent { color: var(--brand-accent); }
+
+    .left-hero {
+      position: relative;
+      z-index: 1;
+    }
+    .left-hero h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 900;
+      color: white;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .left-hero h1 span { color: var(--brand-orange); }
+    .left-hero p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.7;
+      max-width: 380px;
+    }
+
+    /* Stat pills */
+    .stats-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 36px;
+    }
+    .stat-pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 100px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      font-weight: 500;
+    }
+    .stat-pill .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Social proof avatars */
+    .social-proof {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .av-stack { display: flex; }
+    .av-stack .av {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.15);
+      margin-left: -10px;
+      overflow: hidden;
+      background: #1a2744;
+    }
+    .av-stack .av:first-child { margin-left: 0; }
+    .av-stack .av img { width: 100%; height: 100%; object-fit: cover; }
+    .social-proof p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.4; }
+    .social-proof p strong { color: rgba(255,255,255,0.85); font-weight: 600; }
+
+    /* Mini activity card preview */
+    .preview-card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 32px;
+      backdrop-filter: blur(10px);
+      max-width: 360px;
+    }
+    .preview-card__header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .preview-card__av { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.15); }
+    .preview-card__av img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-card__name { font-size: 13px; font-weight: 700; color: white; }
+    .preview-card__time { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+    .preview-card__title { font-size: 14px; font-weight: 700; color: white; margin-bottom: 12px; }
+    .preview-card__stats { display: flex; gap: 20px; }
+    .preview-card__stat-val { font-size: 16px; font-weight: 800; }
+    .preview-card__stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
+
+    /* Left bottom */
+    .left-bottom {
+      position: relative;
+      z-index: 1;
+      font-size: 12px;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* ── Right panel ── */
+    .right-panel {
+      width: 480px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 40px;
+      background: var(--bg-card);
+    }
+
+    .form-box { width: 100%; max-width: 380px; }
+
+    .form-box__eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-orange);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .form-box__title {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: -0.7px;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .form-box__sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    /* Form fields */
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .field label .req { color: var(--brand-orange); margin-left: 2px; }
+
+    .field-wrap {
+      position: relative;
+    }
+    .field-wrap .icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .field-wrap input {
+      width: 100%;
+      padding: 13px 14px 13px 42px;
+      border: 1.5px solid var(--border-light);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--bg-page);
+      transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+      outline: none;
+    }
+    .field-wrap input::placeholder { color: var(--text-muted); }
+    .field-wrap input:focus {
+      border-color: var(--brand-orange);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(252,76,2,0.10);
+    }
+    .field-wrap input.valid {
+      border-color: var(--brand-accent);
+      background: white;
+    }
+    .field-wrap .check {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--brand-accent);
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+    .field-wrap input.valid ~ .check { opacity: 1; }
+
+    .field-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+    .field-error {
+      font-size: 12px;
+      color: #EF4444;
+      margin-top: 5px;
+      display: none;
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--brand-primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 200ms ease, transform 150ms ease, box-shadow 200ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit:hover {
+      background: #1a1a1a;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.20);
+      transform: translateY(-1px);
+    }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit.loading { pointer-events: none; opacity: 0.8; }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-light);
+    }
+
+    /* Terms */
+    .terms {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+    .terms a { color: var(--brand-orange); text-decoration: none; font-weight: 500; }
+    .terms a:hover { text-decoration: underline; }
+
+    /* Feature list */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .feature-item .tick {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(6,194,112,0.12);
+      color: var(--brand-accent);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Success overlay */
+    .success-overlay {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+    .success-overlay.show { display: flex; }
+    .form-box.success .form-fields { display: none; }
+    .form-box.success .success-overlay { display: flex; }
+
+    .success-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: rgba(6,194,112,0.12);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .success-overlay h2 {
+      font-size: 22px; font-weight: 800; letter-spacing: -0.4px;
+      color: var(--text-primary); margin-bottom: 8px;
+    }
+    .success-overlay p {
+      font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;
+    }
+    .btn-enter {
+      padding: 13px 32px;
+      background: var(--brand-orange);
+      color: white; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700; font-family: inherit;
+      cursor: pointer;
+      transition: background 200ms ease, transform 150ms ease;
+    }
+    .btn-enter:hover { background: #e44402; transform: translateY(-1px); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .left-panel { display: none; }
+      .right-panel { width: 100%; padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Left decorative panel ── -->
+<div class="left-panel">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- Logo -->
+  <div class="left-logo">
+    <div class="left-logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/>
+        <circle cx="17" cy="17" r="5"/><circle cx="17" cy="17" r="1.5"/>
+      </svg>
+    </div>
+    Ride<span class="accent">Connect</span>
+  </div>
+
+  <!-- Hero copy -->
+  <div class="left-hero">
+    <h1>Drive more.<br/>Earn more.<br/><span>Together.</span></h1>
+    <p>The social platform built for Uber drivers — track your miles, earnings, and active hours alongside your crew.</p>
+
+    <div class="stats-row">
+      <div class="stat-pill"><div class="dot" style="background:#06C270;"></div>8,400+ active drivers</div>
+      <div class="stat-pill"><div class="dot" style="background:#FC4C02;"></div>San Francisco</div>
+      <div class="stat-pill"><div class="dot" style="background:#1A73E8;"></div>Real-time leaderboard</div>
+    </div>
+
+    <!-- Preview activity card -->
+    <div class="preview-card">
+      <div class="preview-card__header">
+        <div class="preview-card__av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos&backgroundColor=ffd5dc" alt=""/></div>
+        <div>
+          <div class="preview-card__name">Carlos Rivera</div>
+          <div class="preview-card__time">Today · 9:30 AM · 🌅 Early Bird</div>
+        </div>
+      </div>
+      <div class="preview-card__title">Sunrise Shift — 8 Trips Before Noon ☀️</div>
+      <div class="preview-card__stats">
+        <div><div class="preview-card__stat-val" style="color:#FC4C02;">58.7mi</div><div class="preview-card__stat-lbl">Distance</div></div>
+        <div><div class="preview-card__stat-val" style="color:#06C270;">$148.20</div><div class="preview-card__stat-lbl">Earned</div></div>
+        <div><div class="preview-card__stat-val" style="color:#1A73E8;">3:45h</div><div class="preview-card__stat-lbl">Active</div></div>
+      </div>
+    </div>
+
+    <div class="social-proof" style="margin-top:20px;">
+      <div class="av-stack">
+        <div class="av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia&backgroundColor=c0aede" alt=""/></div>
+        <div class="av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha&backgroundColor=b6e3f4" alt=""/></div>
+        <div class="av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Derrick&backgroundColor=d1d4f9" alt=""/></div>
+        <div class="av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Priya&backgroundColor=ffd5dc" alt=""/></div>
+      </div>
+      <p><strong>Mia, Aisha + 8,396 others</strong><br/>joined this week</p>
+    </div>
+  </div>
+
+  <div class="left-bottom">© 2026 RideConnect · masayaako.com</div>
+</div>
+
+<!-- ── Right form panel ── -->
+<div class="right-panel">
+  <div class="form-box" id="formBox">
+
+    <!-- Form fields -->
+    <div class="form-fields">
+      <div class="form-box__eyebrow">Free to join</div>
+      <div class="form-box__title">Join RideConnect</div>
+      <div class="form-box__sub">Your driver community awaits — enter your details to get started.</div>
+
+      <!-- Feature checklist -->
+      <div class="feature-list">
+        <div class="feature-item"><div class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Track miles, earnings &amp; active hours</div>
+        <div class="feature-item"><div class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Compete on weekly leaderboards</div>
+        <div class="feature-item"><div class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Share routes &amp; get kudos from your crew</div>
+      </div>
+
+      <form id="loginForm" novalidate>
+
+        <!-- Name field -->
+        <div class="field">
+          <label for="nameInput">Your Name <span class="req">*</span></label>
+          <div class="field-wrap">
+            <span class="icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <input type="text" id="nameInput" placeholder="e.g. Happy" autocomplete="name" oninput="validateName(this)"/>
+            <span class="check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+          </div>
+          <div class="field-error" id="nameError">Please enter your name.</div>
+        </div>
+
+        <!-- Email field -->
+        <div class="field">
+          <label for="emailInput">Email Address <span class="req">*</span></label>
+          <div class="field-wrap">
+            <span class="icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </span>
+            <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" oninput="validateEmail(this)"/>
+            <span class="check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+          </div>
+          <div class="field-hint">We'll never share your email with anyone.</div>
+          <div class="field-error" id="emailError">Please enter a valid email address.</div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span id="btnText">Get Started — It's Free</span>
+          <svg id="btnArrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <span id="btnSpinner" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;">
+              <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-opacity="0.3"/><path d="M21 12a9 9 0 00-9-9"/>
+            </svg>
+          </span>
+        </button>
+      </form>
+
+      <div class="terms">
+        By joining you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        <br/>Already a member? <a href="rideconnect.html">Sign in →</a>
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div class="success-overlay" id="successOverlay">
+      <div class="success-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#06C270" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>Welcome, <span id="welcomeName"></span>! 👋</h2>
+      <p>Your RideConnect account is ready.<br/>Time to hit the road and track your hustle.</p>
+      <button class="btn-enter" onclick="window.location.href='rideconnect.html'">
+        Enter RideConnect →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+
+<script>
+  function validateName(input) {
+    const err = document.getElementById('nameError');
+    if (input.value.trim().length >= 2) {
+      input.classList.add('valid');
+      err.style.display = 'none';
+    } else {
+      input.classList.remove('valid');
+    }
+  }
+
+  function validateEmail(input) {
+    const err = document.getElementById('emailError');
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+    if (ok) {
+      input.classList.add('valid');
+      err.style.display = 'none';
+    } else {
+      input.classList.remove('valid');
+    }
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name  = document.getElementById('nameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
+    let valid = true;
+
+    if (name.length < 2) {
+      document.getElementById('nameError').style.display = 'block';
+      document.getElementById('nameInput').focus();
+      valid = false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('emailError').style.display = 'block';
+      if (valid) document.getElementById('emailInput').focus();
+      valid = false;
+    }
+    if (!valid) return;
+
+    // Show loading state
+    const btn = document.getElementById('submitBtn');
+    document.getElementById('btnText').style.display = 'none';
+    document.getElementById('btnArrow').style.display = 'none';
+    document.getElementById('btnSpinner').style.display = 'block';
+    btn.classList.add('loading');
+
+    // Simulate brief loading then show success
+    setTimeout(() => {
+      document.querySelector('.form-fields').style.display = 'none';
+      document.getElementById('welcomeName').textContent = name;
+      document.getElementById('successOverlay').style.display = 'flex';
+      // Save to localStorage so the main app can use the name
+      localStorage.setItem('rc_name', name);
+      localStorage.setItem('rc_email', email);
+    }, 1200);
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideConnect — Leaderboard</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .lb-header {
+      background: linear-gradient(135deg, #0A0A0F 0%, #1a2744 60%, #16213e 100%);
+      padding: 40px 24px 32px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .lb-header__pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.06;
+      background-image: repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,1) 20px,rgba(255,255,255,1) 21px);
+    }
+    .lb-header h1 {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.8px;
+      position: relative;
+    }
+    .lb-header p {
+      font-size: 14px;
+      opacity: 0.65;
+      margin-top: 6px;
+      position: relative;
+    }
+    .podium {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      padding: 24px 0 0;
+    }
+    .podium-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .podium-item__avatar {
+      position: relative;
+    }
+    .podium-item__av-ring {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      padding: 3px;
+    }
+    .podium-item__av-ring.gold   { background: linear-gradient(135deg,#F59E0B,#FBBF24); }
+    .podium-item__av-ring.silver { background: linear-gradient(135deg,#9CA3AF,#D1D5DB); }
+    .podium-item__av-ring.bronze { background: linear-gradient(135deg,#CD7C38,#D4936E); }
+    .podium-item__av-ring .inner {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2);
+      overflow: hidden;
+    }
+    .podium-item__av-ring .inner img { width: 100%; height: 100%; object-fit: cover; }
+    .podium-item__crown {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+    }
+    .podium-item__name { font-size: 13px; font-weight: 700; color: white; text-align: center; }
+    .podium-item__val { font-size: 12px; opacity: 0.65; color: white; }
+    .podium-base {
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.6);
+      width: 80px;
+    }
+    .podium-base.gold   { height: 80px; background: rgba(245,158,11,0.35); color: #F59E0B; }
+    .podium-base.silver { height: 56px; background: rgba(156,163,175,0.3); color: #9CA3AF; }
+    .podium-base.bronze { height: 40px; background: rgba(205,124,56,0.3); color: #CD7C38; }
+
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      transition: background var(--ease-default);
+      cursor: pointer;
+    }
+    .lb-row:hover { background: var(--bg-page); }
+    .lb-row + .lb-row { border-top: 1px solid var(--border-light); }
+    .lb-row.is-me {
+      background: rgba(6,194,112,0.05);
+      border-left: 3px solid var(--brand-accent);
+    }
+    .lb-row.is-me:hover { background: rgba(6,194,112,0.09); }
+    .lb-num {
+      width: 32px;
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .lb-num.gold   { color: #F59E0B; }
+    .lb-num.silver { color: #9CA3AF; }
+    .lb-num.bronze { color: #CD7C38; }
+    .lb-av {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .lb-av img { width: 100%; height: 100%; object-fit: cover; }
+    .lb-info { flex: 1; min-width: 0; }
+    .lb-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lb-sub  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .lb-bars { width: 120px; flex-shrink: 0; }
+    .lb-val  { font-size: 17px; font-weight: 900; letter-spacing: -0.3px; width: 70px; text-align: right; flex-shrink: 0; }
+    .lb-delta {
+      width: 44px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .lb-delta.up   { color: var(--brand-accent); }
+    .lb-delta.down { color: #EF4444; }
+    .lb-delta.same { color: var(--text-muted); }
+    .metric-btn {
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-medium);
+      background: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--ease-default);
+    }
+    .metric-btn.active {
+      background: var(--brand-primary);
+      color: white;
+      border-color: var(--brand-primary);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────── -->
+<nav class="nav">
+  <a href="index.html" class="nav__logo">
+    <div class="nav__logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/>
+        <circle cx="17" cy="17" r="5"/><circle cx="17" cy="17" r="1.5"/>
+      </svg>
+    </div>
+    Ride<span class="accent">Connect</span>
+  </a>
+  <div class="nav__links">
+    <a href="index.html" class="nav__link">Feed</a>
+    <a href="leaderboard.html" class="nav__link active">Leaderboard</a>
+    <a href="activity.html" class="nav__link">My Trips</a>
+    <a href="#" class="nav__link">Explore</a>
+  </div>
+  <div class="nav__right">
+    <button class="nav__icon-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
+    <button class="nav__icon-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="nav__badge">3</span>
+    </button>
+    <a href="profile.html" class="nav__avatar">
+      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" alt="Me"/>
+    </a>
+  </div>
+</nav>
+
+<div style="max-width:1100px;margin:0 auto;">
+
+  <!-- Hero Banner -->
+  <div class="lb-header" style="border-radius:0 0 16px 16px;margin-bottom:24px;padding:32px 32px 0;">
+    <div class="lb-header__pattern"></div>
+    <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;opacity:0.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🏆 Leaderboard</div>
+        <h1 class="lb-header h1" style="color:white;">San Francisco Drivers</h1>
+        <p>Week of April 7–13, 2026 &nbsp;·&nbsp; Updated every hour</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="metric-btn active" onclick="switchMetric(this,'earnings')" style="background:rgba(6,194,112,0.2);border-color:rgba(6,194,112,0.4);color:#06C270;">💰 Earnings</button>
+        <button class="metric-btn" onclick="switchMetric(this,'miles')" style="color:white;border-color:rgba(255,255,255,0.2);">📍 Miles</button>
+        <button class="metric-btn" onclick="switchMetric(this,'trips')" style="color:white;border-color:rgba(255,255,255,0.2);">🚗 Trips</button>
+        <button class="metric-btn" onclick="switchMetric(this,'rating')" style="color:white;border-color:rgba(255,255,255,0.2);">⭐ Rating</button>
+      </div>
+    </div>
+
+    <!-- Podium Top 3 -->
+    <div class="podium">
+      <!-- 2nd place -->
+      <div class="podium-item">
+        <div class="podium-item__avatar">
+          <div class="podium-item__av-ring silver">
+            <div class="inner"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha&backgroundColor=b6e3f4" alt="Aisha"/></div>
+          </div>
+        </div>
+        <div class="podium-item__name">Aisha P.</div>
+        <div class="podium-item__val">$1,140</div>
+        <div class="podium-base silver">2</div>
+      </div>
+      <!-- 1st place -->
+      <div class="podium-item" style="margin-bottom:0;">
+        <div class="podium-item__avatar">
+          <div class="podium-item__crown">👑</div>
+          <div class="podium-item__av-ring gold" style="width:80px;height:80px;">
+            <div class="inner"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos&backgroundColor=ffd5dc" alt="Carlos"/></div>
+          </div>
+        </div>
+        <div class="podium-item__name" style="font-size:15px;">Carlos R.</div>
+        <div class="podium-item__val" style="font-size:14px;font-weight:700;color:#F59E0B;">$1,208</div>
+        <div class="podium-base gold" style="width:96px;">1</div>
+      </div>
+      <!-- 3rd place -->
+      <div class="podium-item">
+        <div class="podium-item__avatar">
+          <div class="podium-item__av-ring bronze">
+            <div class="inner"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Derrick&backgroundColor=d1d4f9" alt="Derrick"/></div>
+          </div>
+        </div>
+        <div class="podium-item__name">Derrick L.</div>
+        <div class="podium-item__val">$1,010</div>
+        <div class="podium-base bronze">3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div style="padding:0 16px 32px;display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start;">
+
+    <!-- Main Table -->
+    <div>
+      <!-- Scope Tabs -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+        <div class="tabs" style="width:auto;">
+          <button class="tab-btn active" onclick="switchScope(this,'friends')">Friends</button>
+          <button class="tab-btn" onclick="switchScope(this,'city')">SF City</button>
+          <button class="tab-btn" onclick="switchScope(this,'national')">National</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:13px;color:var(--text-muted);">Period:</span>
+          <div class="tabs" style="width:auto;">
+            <button class="tab-btn" onclick="switchTab(this)">Day</button>
+            <button class="tab-btn active" onclick="switchTab(this)">Week</button>
+            <button class="tab-btn" onclick="switchTab(this)">Month</button>
+            <button class="tab-btn" onclick="switchTab(this)">All-Time</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaderboard Table -->
+      <div class="card card--elevated">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--bg-page);border-bottom:2px solid var(--border-medium);">
+          <div class="lb-num" style="color:var(--text-muted);font-size:12px;">#</div>
+          <div style="width:44px;flex-shrink:0;"></div>
+          <div style="flex:1;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Driver</div>
+          <div class="lb-bars" style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Progress</div>
+          <div style="width:70px;text-align:right;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Earned</div>
+          <div class="lb-delta" style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">+/-</div>
+        </div>
+
+        <!-- Rows 1-3 shown in podium, rows 4+ here -->
+        <div class="lb-row">
+          <div class="lb-num gold">1</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos&backgroundColor=ffd5dc" alt="Carlos"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Carlos Rivera</div>
+            <div class="lb-sub">312 mi · 76 trips · ⭐ 4.97</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:100%;background:linear-gradient(90deg,#F59E0B,#FC4C02);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$1,208</div>
+          <div class="lb-delta up">↑ 2</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num silver">2</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha&backgroundColor=b6e3f4" alt="Aisha"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Aisha Patel</div>
+            <div class="lb-sub">297 mi · 68 trips · ⭐ 4.96</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:94%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$1,140</div>
+          <div class="lb-delta same">—</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num bronze">3</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Derrick&backgroundColor=d1d4f9" alt="Derrick"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Derrick Lane</div>
+            <div class="lb-sub">271 mi · 62 trips · ⭐ 4.92</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:84%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$1,010</div>
+          <div class="lb-delta down">↓ 1</div>
+        </div>
+
+        <!-- YOU -->
+        <div class="lb-row is-me">
+          <div class="lb-num" style="color:var(--text-primary);">4</div>
+          <div class="lb-av" style="border-color:var(--brand-accent);"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" alt="You"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Marcus Johnson <span style="font-size:11px;background:rgba(6,194,112,0.15);color:var(--brand-accent);padding:1px 6px;border-radius:4px;font-weight:700;margin-left:4px;">You</span></div>
+            <div class="lb-sub">247 mi · 57 trips · ⭐ 4.95</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:70%;background:var(--brand-accent);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$842</div>
+          <div class="lb-delta up">↑ 1</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num" style="color:var(--text-muted);">5</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Priya&backgroundColor=ffd5dc" alt="Priya"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Priya Sharma</div>
+            <div class="lb-sub">231 mi · 53 trips · ⭐ 4.98</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:74%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$890</div>
+          <div class="lb-delta same">—</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num" style="color:var(--text-muted);">6</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=James&backgroundColor=c0aede" alt="James"/></div>
+          <div class="lb-info">
+            <div class="lb-name">James Okafor</div>
+            <div class="lb-sub">219 mi · 50 trips · ⭐ 4.91</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:66%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$798</div>
+          <div class="lb-delta down">↓ 2</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num" style="color:var(--text-muted);">7</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Diana&backgroundColor=b6e3f4" alt="Diana"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Diana Nguyen</div>
+            <div class="lb-sub">205 mi · 47 trips · ⭐ 4.94</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:60%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$741</div>
+          <div class="lb-delta up">↑ 3</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num" style="color:var(--text-muted);">8</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael&backgroundColor=d1d4f9" alt="Michael"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Michael Torres</div>
+            <div class="lb-sub">198 mi · 44 trips · ⭐ 4.89</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:57%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$712</div>
+          <div class="lb-delta down">↓ 1</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num" style="color:var(--text-muted);">9</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima&backgroundColor=ffd5dc" alt="Fatima"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Fatima Al-Hassan</div>
+            <div class="lb-sub">184 mi · 41 trips · ⭐ 4.96</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:52%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$680</div>
+          <div class="lb-delta up">↑ 1</div>
+        </div>
+
+        <div class="lb-row">
+          <div class="lb-num" style="color:var(--text-muted);">10</div>
+          <div class="lb-av"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Victor&backgroundColor=b6e3f4" alt="Victor"/></div>
+          <div class="lb-info">
+            <div class="lb-name">Victor Chen</div>
+            <div class="lb-sub">176 mi · 39 trips · ⭐ 4.93</div>
+          </div>
+          <div class="lb-bars">
+            <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:48%;background:var(--stat-earnings);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div class="lb-val" style="color:var(--stat-earnings);">$648</div>
+          <div class="lb-delta same">—</div>
+        </div>
+
+        <!-- Load more -->
+        <div style="padding:16px;text-align:center;border-top:1px solid var(--border-light);">
+          <button class="btn btn--ghost" style="width:100%;max-width:300px;">Show more drivers</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div>
+
+      <!-- Your Ranking Summary -->
+      <div class="card card--elevated mb-4" style="overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#06C270,#059255);padding:20px;color:white;">
+          <div style="font-size:12px;font-weight:700;opacity:0.75;text-transform:uppercase;letter-spacing:0.5px;">Your Position</div>
+          <div style="font-size:48px;font-weight:900;letter-spacing:-2px;line-height:1;">#4</div>
+          <div style="font-size:13px;opacity:0.85;margin-top:4px;">out of 847 SF drivers this week</div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2);font-size:13px;opacity:0.8;">
+            📈 Up 1 spot from last week
+          </div>
+        </div>
+        <div style="padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">GAP TO NEXT RANK</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:13px;font-weight:600;">vs. Derrick (#3)</span>
+                <span style="font-size:13px;font-weight:800;color:var(--brand-orange);">$168 behind</span>
+              </div>
+              <div class="progress-bar"><div class="progress-bar__fill orange" style="width:83%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:13px;font-weight:600;">vs. Priya (#5)</span>
+                <span style="font-size:13px;font-weight:800;color:var(--brand-accent);">$48 ahead</span>
+              </div>
+              <div class="progress-bar"><div class="progress-bar__fill" style="width:94%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Challenges -->
+      <div class="card card--elevated mb-4">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border-light);font-size:14px;font-weight:700;">Active Challenges</div>
+        <div style="padding:12px 16px;display:flex;flex-direction:column;gap:12px;">
+
+          <div style="border-radius:10px;background:var(--bg-page);padding:12px;border:1px solid var(--border-light);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div>
+                <div style="font-size:13px;font-weight:700;">💰 $1,000 Week</div>
+                <div style="font-size:11px;color:var(--text-muted);">Earn $1K in a single week</div>
+              </div>
+              <span class="tag tag--orange">84%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-bar__fill orange" style="width:84%;"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--text-muted);">
+              <span>$842 / $1,000</span>
+              <span>3 days left</span>
+            </div>
+          </div>
+
+          <div style="border-radius:10px;background:var(--bg-page);padding:12px;border:1px solid var(--border-light);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div>
+                <div style="font-size:13px;font-weight:700;">🛣️ 500 Mile Month</div>
+                <div style="font-size:11px;color:var(--text-muted);">Drive 500 miles in April</div>
+              </div>
+              <span class="tag tag--green">82%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-bar__fill" style="width:82%;"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--text-muted);">
+              <span>410 / 500 mi</span>
+              <span>14 days left</span>
+            </div>
+          </div>
+
+          <div style="border-radius:10px;background:var(--bg-page);padding:12px;border:1px solid var(--border-light);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div>
+                <div style="font-size:13px;font-weight:700;">⭐ 5-Star Streak</div>
+                <div style="font-size:11px;color:var(--text-muted);">20 consecutive 5-star trips</div>
+              </div>
+              <span class="tag tag--blue">65%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-bar__fill blue" style="width:65%;"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--text-muted);">
+              <span>13 / 20 in a row</span>
+              <span>Keep it up!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- City Stats -->
+      <div class="card card--elevated">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border-light);font-size:14px;font-weight:700;">SF City This Week</div>
+        <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--bg-page);border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--stat-earnings);">$847</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-top:2px;">City Avg</div>
+          </div>
+          <div style="background:var(--bg-page);border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--stat-miles);">218mi</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-top:2px;">Avg Miles</div>
+          </div>
+          <div style="background:var(--bg-page);border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--stat-hours);">847</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-top:2px;">Drivers</div>
+          </div>
+          <div style="background:var(--bg-page);border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--stat-trips);">4.94⭐</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-top:2px;">City Rating</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(btn) {
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function switchScope(btn, scope) {
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function switchMetric(btn, metric) {
+  document.querySelectorAll('.metric-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = '';
+    b.style.borderColor = 'rgba(255,255,255,0.2)';
+    b.style.color = 'white';
+  });
+  btn.classList.add('active');
+  btn.style.background = 'rgba(6,194,112,0.2)';
+  btn.style.borderColor = 'rgba(6,194,112,0.4)';
+  btn.style.color = '#06C270';
+}
+</script>
+
+</body>
+</html>
